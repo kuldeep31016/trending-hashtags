@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useLive, type Connection, type Range } from "../lib/live";
-import { fmtAgo, fmtClock } from "../lib/format";
+import { fmtAgo, fmtClock, nowMs } from "../lib/format";
 import { Select, StateDot } from "./ui";
 import type { HealthState } from "../lib/types";
 
@@ -34,9 +34,9 @@ export const NAV = [
 ];
 
 function useNow(ms = 1000) {
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(nowMs());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), ms);
+    const t = setInterval(() => setNow(nowMs()), ms);
     return () => clearInterval(t);
   }, [ms]);
   return now;
@@ -162,6 +162,7 @@ const CONN: Record<Connection, { label: string; color: string; hint: string }> =
   polling: { label: "Polling", color: "var(--good)", hint: "Receiving updates by polling the API" },
   connecting: { label: "Connecting", color: "var(--warning)", hint: "Connecting to the update stream" },
   disconnected: { label: "Disconnected", color: "var(--critical)", hint: "The dashboard API is unreachable" },
+  replay: { label: "Replay", color: "var(--accent)", hint: "Playing back a recorded run of the real pipeline" },
 };
 
 function TopBar({ onMenu }: { onMenu: () => void }) {
@@ -198,7 +199,7 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
           </span>
           <span className="hidden text-[12px] text-ink-3 sm:inline" title="Time the latest MapReduce window was produced">
             Updated <span className="num text-ink-2">{fmtClock(genTs, true)}</span>
-            {genTs && <span> · {fmtAgo(Date.now() / 1000 - genTs)}</span>}
+            {genTs && <span> · {fmtAgo(nowMs() / 1000 - genTs)}</span>}
           </span>
           <Select<Range>
             label="Chart history range"
@@ -237,11 +238,21 @@ function TopBar({ onMenu }: { onMenu: () => void }) {
 }
 
 function StatusBanner() {
-  const { leaderboard, connection, paused, health } = useLive();
+  const { leaderboard, connection, paused, health, replay } = useLive();
   const f = leaderboard?.freshness;
   let tone: "warn" | "info" | "crit" | null = null;
   let text: ReactNode = null;
-  if (connection === "disconnected") {
+  if (connection === "replay" && replay) {
+    tone = "info";
+    const day = leaderboard?.generated_at ? new Date(leaderboard.generated_at).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" }) : "";
+    text = (
+      <>
+        <b className="font-semibold text-ink">Recorded replay</b> of a real run on {day}: tweets streamed through Kafka into HDFS and counted by Hadoop
+        MapReduce on YARN. Window {replay.index + 1} of {replay.total} is shown; a new recorded window plays every 12 s and the run loops.
+        {paused ? " Playback paused." : ""}
+      </>
+    );
+  } else if (connection === "disconnected") {
     tone = "crit";
     text = "The dashboard API is unreachable. Showing the last data received; reconnecting automatically.";
   } else if (paused) {

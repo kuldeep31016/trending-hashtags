@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { REPLAY, replayApi, replayReady } from "./replay";
 
 export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string) {
@@ -7,6 +8,15 @@ export class ApiError extends Error {
 }
 
 export async function fetchJson<T>(path: string, timeoutMs = 10000): Promise<T> {
+  if (REPLAY) {
+    // hosted build: answer from the recorded run instead of a live API
+    await replayReady();
+    try {
+      return structuredClone(replayApi(path)) as T;
+    } catch (e) {
+      throw new ApiError((e as { status?: number }).status ?? 500, (e as { status?: number }).status === 404 ? "not_found" : "replay_error", (e as Error).message);
+    }
+  }
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), timeoutMs);
   try {

@@ -1,8 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fetchJson } from "./api";
+import { REPLAY, frameCount, frameTime, loadReplay, setFrame, frameIndex, currentFrame } from "./replay";
+import { setClockOffset } from "./format";
 import type { Health, Leaderboard } from "./types";
 
-export type Connection = "connecting" | "live" | "polling" | "disconnected";
+export type Connection = "connecting" | "live" | "polling" | "disconnected" | "replay";
 export type Transport = "sse" | "poll";
 export type Range = "15" | "30" | "60" | "all";
 export type Theme = "light" | "dark";
@@ -24,9 +26,13 @@ interface LiveState {
   pendingUpdates: number;
   windowKey: string | null; // changes whenever a new MapReduce window is displayed
   settings: Settings;
+  replay: { index: number; total: number } | null;
   setPaused: (p: boolean) => void;
   update: (s: Partial<Settings>) => void;
 }
+
+const REPLAY_FIRST_FRAME = 3;
+const REPLAY_STEP_MS = 12000; // one recorded MapReduce window every 12 s of playback
 
 const DEFAULTS: Settings = { transport: "sse", pollSeconds: 5, range: "30", theme: "light" };
 const KEY = "pt-settings";
@@ -103,8 +109,39 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     [acceptLeaderboard],
   );
 
+  // replay build: step through the recorded windows on a loop, like new windows arriving
+  const [replayPos, setReplayPos] = useState<{ index: number; total: number } | null>(null);
+  useEffect(() => {
+    if (!REPLAY) return;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let cancelled = false;
+    const show = (i: number) => {
+      setFrame(i);
+      const f = currentFrame();
+      setClockOffset(Date.now() - frameTime() * 1000);
+      acceptLeaderboard(f.leaderboard);
+      acceptHealth(f.health);
+      setReplayPos({ index: frameIndex(), total: frameCount() });
+    };
+    loadReplay()
+      .then((n) => {
+        if (cancelled || !n) return;
+        setConnection("replay");
+        show(Math.min(REPLAY_FIRST_FRAME, n - 1)); // open on a window that already has history to show
+        timer = setInterval(() => {
+          if (!pausedRef.current) show(frameIndex() + 1);
+        }, REPLAY_STEP_MS);
+      })
+      .catch(() => !cancelled && setConnection("disconnected"));
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
+  }, [acceptLeaderboard, acceptHealth]);
+
   // transport: SSE first, polling as fallback (or when chosen in Settings)
   useEffect(() => {
+    if (REPLAY) return;
     let closed = false;
     let es: EventSource | null = null;
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -184,10 +221,11 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       pendingUpdates,
       windowKey: keyOf(shown.cur),
       settings,
+      replay: replayPos,
       setPaused,
       update,
     }),
-    [shown, health, connection, lastUpdate, paused, pendingUpdates, settings, setPaused, update],
+    [shown, health, connection, lastUpdate, paused, pendingUpdates, settings, replayPos, setPaused, update],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -1,4 +1,5 @@
 import { useLive, type Range, type Theme, type Transport } from "../lib/live";
+import { REPLAY } from "../lib/replay";
 import { useMeta } from "../lib/meta";
 import { fmtInt, fmtNum } from "../lib/format";
 import { Code2, Database, Palette, SlidersHorizontal } from "lucide-react";
@@ -33,6 +34,8 @@ export default function SettingsPage() {
             <Segmented<Theme> label="Theme" value={settings.theme} onChange={(v) => update({ theme: v })}
               options={[{ value: "dark", label: "Dark" }, { value: "light", label: "Light" }]} />
           </Row>
+          {!REPLAY && (
+            <>
           <Row label="Live updates" hint={`Server-Sent Events push new windows instantly; polling is the fallback. Now: ${connection}`}>
             <Segmented<Transport> label="Update transport" value={settings.transport} onChange={(v) => update({ transport: v })}
               options={[{ value: "sse", label: "SSE" }, { value: "poll", label: "Polling" }]} />
@@ -41,6 +44,8 @@ export default function SettingsPage() {
             <Select<string> label="Polling interval" value={String(settings.pollSeconds)} onChange={(v) => update({ pollSeconds: Number(v) })}
               options={["3", "5", "10", "30"].map((v) => ({ value: v, label: `${v} s` }))} />
           </Row>
+            </>
+          )}
           <Row label="Default chart history" hint="Same as the selector in the top bar">
             <Select<Range> label="Default chart history" value={settings.range} onChange={(v) => update({ range: v })}
               options={[{ value: "15", label: "15 min" }, { value: "30", label: "30 min" }, { value: "60", label: "60 min" }, { value: "all", label: "All stored" }]} />
@@ -77,6 +82,7 @@ export default function SettingsPage() {
         )}
       </Card>
 
+      {!REPLAY && (
       <Card title={<span className="flex items-center gap-2.5"><IconTile tint="sky" size={36}><Code2 size={18} /></IconTile>API</span>} subtitle="JSON endpoints served by Flask (schemas in docs/API.md)">
         <ul className="space-y-1 text-[12.5px]">
           {ENDPOINTS.map((e) => (
@@ -86,6 +92,7 @@ export default function SettingsPage() {
           <li><a className="text-accent hover:underline" href="/classic">Original single-page dashboard</a></li>
         </ul>
       </Card>
+      )}
     </div>
   );
 }

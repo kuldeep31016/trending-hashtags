@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Code2, Cpu, Database, ExternalLink, Loader, Radio } from "lucide-react";
 import { useLive } from "../lib/live";
+import { REPLAY } from "../lib/replay";
 import { useResource } from "../lib/api";
 import { useMeta } from "../lib/meta";
 import { agoFromTs, fmtAgo, fmtClock, fmtInt, fmtNum, fmtSecs } from "../lib/format";
@@ -33,7 +34,7 @@ function StagePanel({ title, stage, children, link, icon, tint }: { title: strin
   );
 }
 
-const Ext = ({ href, children }: { href: string; children: ReactNode }) => (
+const Ext = ({ href, children }: { href: string; children: ReactNode }) => REPLAY ? null : (
   <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] text-accent hover:underline">
     {children} <ExternalLink size={12} aria-hidden />
   </a>

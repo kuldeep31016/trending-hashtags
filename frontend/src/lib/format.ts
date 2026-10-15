@@ -1,5 +1,10 @@
 const nf = new Intl.NumberFormat();
 
+/** Wall clock, shifted to the recorded time when the dashboard plays back a recorded run. */
+let clockOffsetMs = 0;
+export const setClockOffset = (ms: number) => (clockOffsetMs = ms);
+export const nowMs = () => Date.now() - clockOffsetMs;
+
 export const fmtInt = (n: number | null | undefined) => (n == null ? "—" : nf.format(Math.round(n)));
 
 export function fmtNum(n: number | null | undefined, digits = 1) {
@@ -33,7 +38,7 @@ export function fmtAgo(seconds: number | null | undefined) {
   return `${Math.floor(seconds / 3600)} h ago`;
 }
 
-export const agoFromTs = (ts: number | null | undefined) => (ts == null ? null : Date.now() / 1000 - ts);
+export const agoFromTs = (ts: number | null | undefined) => (ts == null ? null : nowMs() / 1000 - ts);
 
 /** Relative change in percent, or null when there is no comparable previous value. */
 export function pctChange(cur: number | null | undefined, prev: number | null | undefined) {

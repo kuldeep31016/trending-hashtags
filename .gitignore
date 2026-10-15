@@ -15,3 +15,4 @@ data/tweets.jsonl
 data/tweets.meta.json
 dashboard/static/app/
 .DS_Store
+dist-replay/

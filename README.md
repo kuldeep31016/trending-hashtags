@@ -79,6 +79,21 @@ leaderboard (`demo.sh local` refuses to).
 cd frontend && npm install && npm run build           # type-check + production build
 ```
 
+## Hosted replay (Vercel)
+
+Live link: **https://pulsetrend-dsce.vercel.app**. Vercel only hosts websites, so it can't run
+Kafka, HDFS or YARN. The hosted site plays back a **recorded real run** of this pipeline instead:
+`scripts/record_replay.py` saves every MapReduce window as the API served it, and the dashboard
+built with `VITE_REPLAY=1` answers its API calls from those files and loops through the windows
+(a banner says it is a recorded replay). To refresh it:
+
+```bash
+.venv/bin/python scripts/record_replay.py --minutes 35     # while scripts/demo.sh up is running
+cd frontend && npm run build:replay && cd dist-replay
+vercel link --yes --project trending-hashtags && vercel deploy --prod --yes
+vercel alias set <deployment-url> pulsetrend-dsce.vercel.app
+```
+
 ## Dashboard
 
 | Page | What it shows (all from real pipeline output) |

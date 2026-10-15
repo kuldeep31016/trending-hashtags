@@ -6,7 +6,7 @@ import { useLive, rangeFrom } from "../lib/live";
 import { useResource } from "../lib/api";
 import { useMeta, useInjected } from "../lib/meta";
 import { CountUp } from "../lib/anim";
-import { fmtClock, fmtInt, fmtNum, fmtSecs, pctChange } from "../lib/format";
+import { fmtClock, fmtInt, fmtNum, fmtSecs, nowMs, pctChange } from "../lib/format";
 import type { History, Metrics, Run, SentimentResponse, TrendEvent } from "../lib/types";
 import { Card, Change, Empty, ErrorNote, IconTile, KeyValue, SimulatedBadge, Skeleton, StateLabel, Unavailable, type Tint } from "../components/ui";
 import { LeaderboardTable, type RankMode } from "../components/LeaderboardTable";
@@ -68,9 +68,9 @@ function Kpi({
 }
 
 function useNow(ms = 1000) {
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(nowMs());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), ms);
+    const t = setInterval(() => setNow(nowMs()), ms);
     return () => clearInterval(t);
   }, [ms]);
   return now;
