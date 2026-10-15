@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trending Hashtags</title>
+<style>
+  :root { --bg:#0e1116; --card:#161b22; --line:#262d36; --text:#e6edf3; --mute:#8b949e;
+          --accent:#2f81f7; --up:#3fb950; --down:#f85149; --new:#d29922; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+         font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:32px 16px 48px; }
+  h1 { margin:0 0 4px; font-size:28px; letter-spacing:-.02em; }
+  .sub { color:var(--mute); margin-bottom:20px; font-size:14px; }
+  .stats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; }
+  .stat b { display:block; font-size:20px; font-variant-numeric:tabular-nums; }
+  .stat span { color:var(--mute); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+  .row { display:grid; grid-template-columns:36px 1fr 64px 70px 96px; align-items:center; gap:12px;
+         background:var(--card); border:1px solid var(--line); border-radius:10px;
+         padding:12px 14px; margin-bottom:8px; }
+  .rank { font-size:20px; font-weight:700; color:var(--mute); font-variant-numeric:tabular-nums; }
+  .row:nth-child(-n+3) .rank { color:var(--text); }
+  .tag { font-weight:600; margin-bottom:6px; overflow-wrap:anywhere; }
+  .bar { height:6px; border-radius:3px; background:var(--line); overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--accent); transition:width .6s ease; }
+  .count { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; }
+  .move { text-align:center; font-size:13px; font-weight:600; }
+  .up { color:var(--up); } .down { color:var(--down); } .same { color:var(--mute); } .new { color:var(--new); }
+  svg { width:96px; height:28px; display:block; }
+  .empty { color:var(--mute); padding:40px; text-align:center; border:1px dashed var(--line); border-radius:10px; }
+  @media (max-width:560px) { .row { grid-template-columns:28px 1fr 56px 56px; } .spark { display:none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Trending hashtags</h1>
+  <div class="sub" id="window">Waiting for the first window&hellip;</div>
+  <div class="stats">
+    <div class="stat"><b id="total">-</b><span>Tweets in window</span></div>
+    <div class="stat"><b id="job">-</b><span>Last job (s)</span></div>
+    <div class="stat"><b id="updated">-</b><span>Updated</span></div>
+  </div>
+  <div id="list"></div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const hhmm = s => new Date(s * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+function spark(series) {
+  const w = 96, h = 28, max = Math.max(...series, 1);
+  const pts = series.map((v, i) => `${(i / Math.max(series.length - 1, 1) * (w - 2) + 1).toFixed(1)},${(h - 2 - v / max * (h - 4)).toFixed(1)}`);
+  return `<svg viewBox="0 0 ${w} ${h}"><polyline fill="none" stroke="var(--accent)" stroke-width="2" points="${pts.join(' ')}"/></svg>`;
+}
+
+function movement(d) {
+  if (d === null) return '<span class="new">NEW</span>';
+  if (d > 0) return `<span class="up">&#9650; ${d}</span>`;
+  if (d < 0) return `<span class="down">&#9660; ${-d}</span>`;
+  return '<span class="same">&ndash;</span>';
+}
+
+async function refresh() {
+  try {
+    const r = await fetch('/api/leaderboard', {cache: 'no-store'});
+    const d = await r.json();
+    const list = $('list');
+    if (!d.top || !d.top.length) {
+      list.innerHTML = '<div class="empty">No hashtags yet. Start the pipeline and the first window will appear here.</div>';
+      return;
+    }
+    $('window').textContent = `Last ${d.window_minutes} minutes (${hhmm(d.window_start)} to ${hhmm(d.window_end)}), refreshed every minute`;
+    $('total').textContent = (d.total_tweets || 0).toLocaleString();
+    $('job').textContent = d.job_seconds ?? '-';
+    $('updated').textContent = new Date(d.generated_at).toLocaleTimeString();
+    const max = d.top[0].count;
+    list.innerHTML = '';
+    for (const e of d.top) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `<div class="rank">${e.rank}</div>
+        <div><div class="tag"></div><div class="bar"><i style="width:${(e.count / max * 100).toFixed(1)}%"></i></div></div>
+        <div class="count">${e.count.toLocaleString()}</div>
+        <div class="move">${movement(e.delta)}</div>
+        <div class="spark">${spark(e.series)}</div>`;
+      row.querySelector('.tag').textContent = '#' + e.tag;  // textContent: never inject tweet text as HTML
+      list.appendChild(row);
+    }
+  } catch (err) { /* keep showing the last good state */ }
+}
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>

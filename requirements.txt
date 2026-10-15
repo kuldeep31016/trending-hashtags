@@ -1,0 +1,2 @@
+flask>=3.0
+kafka-python>=2.1.0   # if import fails on Python 3.12+, use: pip install kafka-python-ng

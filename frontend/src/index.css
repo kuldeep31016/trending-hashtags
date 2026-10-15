@@ -1,0 +1,252 @@
+@import "tailwindcss";
+/* MyDukan brand type: Plus Jakarta Sans for UI, Source Serif 4 for headings and big figures */
+@import "@fontsource/plus-jakarta-sans/400.css";
+@import "@fontsource/plus-jakarta-sans/500.css";
+@import "@fontsource/plus-jakarta-sans/600.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
+@import "@fontsource/source-serif-4/600.css";
+@import "@fontsource/source-serif-4/700.css";
+@import "@fontsource/source-serif-4/800.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+  Light (default) follows the MyDukan mockup: cool off-white canvas, white cards with a soft
+  two-layer shadow, blue accent, tinted icon tiles. Dark keeps the ink-navy operations view.
+  Series colors = the validated categorical palette, stepped per mode (dataviz palette.md).
+  Status colors are reserved for health/state and always ship with an icon + label.
+*/
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --canvas: #f4f7fb;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --raised: #eef2f7;
+  --line: #e4e9f0;
+  --line-strong: #cfd7e3;
+  --ink: #0f172a;
+  --ink-2: rgb(15 23 42 / 0.7);
+  --ink-3: rgb(15 23 42 / 0.52);
+  --accent: #2563eb;
+  --accent-2: #38bdf8;
+  --accent-soft: rgb(37 99 235 / 0.08);
+  --focus: #7c3aed;
+  --good: #16a34a;
+  --warning: #b45309;
+  --serious: #c2410c;
+  --critical: #dc2626;
+  --good-soft: rgb(22 163 74 / 0.1);
+  --critical-soft: rgb(220 38 38 / 0.09);
+  --new: #7c3aed;
+  --new-soft: rgb(124 58 237 / 0.1);
+  --tint-blue: #2563eb;   --tint-blue-bg: #e8f0fe;
+  --tint-violet: #7c3aed; --tint-violet-bg: #f1ebfe;
+  --tint-sky: #0284c7;    --tint-sky-bg: #e3f4fc;
+  --tint-green: #16a34a;  --tint-green-bg: #e3f6e9;
+  --tint-amber: #d97706;  --tint-amber-bg: #fdf1df;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+  --pos: #2a78d6; --neu: #b9b7b0; --neg: #e34948;
+  --grid: #edf1f6;
+  --card-shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 2px 8px -2px rgb(16 24 40 / 0.06);
+  --card-shadow-hover: 0 2px 4px rgb(16 24 40 / 0.05), 0 12px 24px -8px rgb(16 24 40 / 0.12);
+  --shadow: 0 16px 36px -12px rgb(16 24 40 / 0.22);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #0b0f17;
+  --surface: #111723;
+  --surface-2: #141b28;
+  --raised: #1a2232;
+  --line: rgb(148 163 184 / 0.13);
+  --line-strong: rgb(148 163 184 / 0.24);
+  --ink: #e7ebf2;
+  --ink-2: rgb(231 235 242 / 0.7);
+  --ink-3: rgb(231 235 242 / 0.5);
+  --accent: #5b9bff;
+  --accent-2: #38bdf8;
+  --accent-soft: rgb(91 155 255 / 0.12);
+  --focus: #a98bff;
+  --good: #34c766;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #ef6464;
+  --good-soft: rgb(52 199 102 / 0.14);
+  --critical-soft: rgb(239 100 100 / 0.14);
+  --new: #a78bfa;
+  --new-soft: rgb(167 139 250 / 0.16);
+  --tint-blue: #7aa7ff;   --tint-blue-bg: rgb(91 155 255 / 0.14);
+  --tint-violet: #b69cff; --tint-violet-bg: rgb(167 139 250 / 0.15);
+  --tint-sky: #5cc8f5;    --tint-sky-bg: rgb(56 189 248 / 0.13);
+  --tint-green: #4ad07a;  --tint-green-bg: rgb(52 199 102 / 0.14);
+  --tint-amber: #f5b142;  --tint-amber-bg: rgb(245 177 66 / 0.14);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+  --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  --pos: #3987e5; --neu: #5c5f66; --neg: #e66767;
+  --grid: rgb(148 163 184 / 0.09);
+  --card-shadow: 0 1px 0 rgb(255 255 255 / 0.02) inset;
+  --card-shadow-hover: 0 12px 28px -12px rgb(0 0 0 / 0.7);
+  --shadow: 0 16px 40px -12px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-warning: var(--warning);
+  --color-serious: var(--serious);
+  --color-critical: var(--critical);
+  --color-good-soft: var(--good-soft);
+  --color-critical-soft: var(--critical-soft);
+  --color-new: var(--new);
+  --color-new-soft: var(--new-soft);
+  --radius-card: 14px;
+  --radius-ctl: 6px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+/* figures: same family, tabular digits so columns of numbers line up */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+/* headings and headline figures use the serif, as on mydukan.app */
+h1, h2, .display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+.display { font-weight: 700; }
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+::selection {
+  background: var(--accent-soft);
+}
+
+/* live-update flash: the changed cell fades back to baseline */
+@keyframes flash {
+  from { background-color: var(--accent-soft); }
+  to { background-color: transparent; }
+}
+.flash { animation: flash 1.6s ease-out; }
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@keyframes shimmer {
+  from { background-position: -240px 0; }
+  to { background-position: calc(240px + 100%) 0; }
+}
+.skeleton {
+  border-radius: 8px;
+  background: var(--raised) linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent) no-repeat;
+  background-size: 240px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+[data-theme="dark"] .skeleton {
+  background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+}
+
+/* live indicator: an expanding ring says "this is streaming" */
+@keyframes ping {
+  0% { transform: scale(1); opacity: 0.55; }
+  80%, 100% { transform: scale(2.6); opacity: 0; }
+}
+.ping { position: relative; }
+.ping::after {
+  content: ""; position: absolute; inset: 0; border-radius: 9999px;
+  background: currentColor; animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* pipeline connectors: dots travel in the direction data flows; stopped stages stop them */
+@keyframes flow {
+  from { transform: translateX(-6px); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  to { transform: translateX(calc(var(--flow-len, 40px) - 2px)); opacity: 0; }
+}
+.flow-dot { animation: flow 1.6s linear infinite; }
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.fade-up { animation: fade-up 0.45s cubic-bezier(0.2, 0, 0, 1) both; }
+
+/* sparklines draw in left to right, then the fill and end dot fade up */
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+.spark-line { stroke-dasharray: 1; animation: draw 1s cubic-bezier(0.3, 0, 0.2, 1) both; }
+.spark-fill { animation: appear 0.6s 0.5s ease-out both; }
+.spark-dot { animation: appear 0.3s 0.9s ease-out both; }
+
+/* cards inside a grid arrive one after another instead of all at once */
+.grid > .fade-up:nth-child(2), .grid > * > .fade-up:nth-child(2) { animation-delay: 0.06s; }
+.grid > .fade-up:nth-child(3), .grid > * > .fade-up:nth-child(3) { animation-delay: 0.12s; }
+.grid > .fade-up:nth-child(4), .grid > * > .fade-up:nth-child(4) { animation-delay: 0.18s; }
+.grid > .fade-up:nth-child(5) { animation-delay: 0.24s; }
+.grid > .fade-up:nth-child(6) { animation-delay: 0.3s; }
+.space-y-4 > .fade-up:nth-child(2), .space-y-5 > .fade-up:nth-child(2) { animation-delay: 0.08s; }
+.space-y-4 > .fade-up:nth-child(3), .space-y-5 > .fade-up:nth-child(3) { animation-delay: 0.16s; }
+.space-y-4 > .fade-up:nth-child(4), .space-y-5 > .fade-up:nth-child(4) { animation-delay: 0.24s; }
+
+/* growing bars (progress, sentiment splits) */
+@keyframes grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.grow-x { transform-origin: left; animation: grow-x 0.9s cubic-bezier(0.2, 0, 0, 1) both; }
+
+.card-hover { transition: box-shadow 0.25s ease; }
+.card-hover:hover { box-shadow: var(--card-shadow-hover) !important; }
+
+.card-lift { transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease; }
+.card-lift:hover { box-shadow: var(--card-shadow-hover); transform: translateY(-2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Recharts: keep chrome recessive and theme-aware */
+.recharts-cartesian-grid line { stroke: var(--grid); }
+.recharts-text { fill: var(--ink-3); font-size: 11px; font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
+.recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line { stroke: var(--line-strong); }
+.recharts-surface:focus, .recharts-wrapper:focus, .recharts-wrapper *:focus { outline: none; }
