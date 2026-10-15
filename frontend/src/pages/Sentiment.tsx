@@ -88,7 +88,7 @@ export default function SentimentPage() {
                     </span>
                   ))}
                 </div>
-                <div style={{ height: 260 }}>
+                <div style={{ height: 260 }} className="reveal-x">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={share} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
                       <CartesianGrid vertical={false} />
@@ -110,7 +110,7 @@ export default function SentimentPage() {
                         }
                       />
                       {SENTIMENT.map((k) => (
-                        <Line key={k.key} dataKey={k.key} stroke={k.color} strokeWidth={2.25} dot={false} isAnimationActive animationDuration={1000} type="monotoneX" />
+                        <Line key={k.key} dataKey={k.key} stroke={k.color} strokeWidth={2.25} dot={false} isAnimationActive={false} type="monotoneX" />
                       ))}
                     </LineChart>
                   </ResponsiveContainer>

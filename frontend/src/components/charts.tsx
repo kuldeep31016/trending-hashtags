@@ -1,5 +1,4 @@
 import { useId, useMemo, type ReactNode } from "react";
-import { useReducedMotion } from "framer-motion";
 import {
   Area,
   AreaChart,
@@ -106,7 +105,6 @@ export function TrendChart({
 }) {
   const colors = colorMap(tags);
   const gid = useId().replace(/:/g, "");
-  const reduce = useReducedMotion();
   const data = useMemo(() => {
     const byTs = new Map<number, Record<string, number>>();
     tags.forEach((t) =>
@@ -169,7 +167,7 @@ export function TrendChart({
           </span>
         )}
       </div>
-      <div style={{ height }}>
+      <div style={{ height }} className="reveal-x">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
             <defs>
@@ -198,7 +196,7 @@ export function TrendChart({
                 ) : null
               }
             />
-            {tags.map((t, i) => (
+            {tags.map((t) => (
               <Area
                 key={t}
                 type="monotoneX"
@@ -208,11 +206,7 @@ export function TrendChart({
                 fill={`url(#${gid}-${t})`}
                 dot={data.length <= 24 ? { r: 2.5, strokeWidth: 0, fill: colors[t] } : false}
                 activeDot={{ r: 5, strokeWidth: 3, stroke: "var(--surface)" }}
-                isAnimationActive={!reduce}
-                animationDuration={1100}
-                animationBegin={i * 120}
-                animationEasing="ease-out"
-                connectNulls={false}
+                isAnimationActive={false} connectNulls={false}
               />
             ))}
             {surges.map((e) => {
@@ -232,12 +226,11 @@ export function TrendChart({
 /* ---------- MapReduce job duration per run -------------------------------------------- */
 
 export function DurationChart({ runs, interval, height = 200 }: { runs: Run[]; interval: number; height?: number }) {
-  const reduce = useReducedMotion();
   // failed/skipped runs have no job time: draw a short stub so they stay visible
   const data = runs.map((r) => ({ ...r, value: r.job_seconds ?? Math.max(4, interval * 0.08) }));
   if (!data.length) return <Empty title="No MapReduce runs recorded yet" />;
   return (
-    <div style={{ height }}>
+    <div style={{ height }} className="reveal-y">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap={2}>
           <CartesianGrid vertical={false} />
@@ -267,7 +260,7 @@ export function DurationChart({ runs, interval, height = 200 }: { runs: Run[]; i
               );
             }}
           />
-          <Bar dataKey="value" radius={[5, 5, 0, 0]} isAnimationActive={!reduce} animationDuration={900} maxBarSize={22}>
+          <Bar dataKey="value" radius={[5, 5, 0, 0]} isAnimationActive={false} maxBarSize={22}>
             {data.map((r, i) => (
               <Cell key={i} fill={r.status === "success" ? "var(--s1)" : r.status === "skipped" ? "var(--line-strong)" : "var(--critical)"} />
             ))}
@@ -287,15 +280,14 @@ export const SENTIMENT = [
 ] as const;
 
 export function SentimentDonut({ s, size = 150 }: { s: Sentiment; size?: number }) {
-  const reduce = useReducedMotion();
   const total = s.positive + s.neutral + s.negative;
   const data = SENTIMENT.map((k) => ({ name: k.label, value: s[k.key], color: k.color }));
   return (
     <div className="flex flex-wrap items-center gap-5">
-      <div className="relative" style={{ width: size, height: size }}>
+      <div className="pop relative" style={{ width: size, height: size }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={data} dataKey="value" innerRadius={size * 0.36} outerRadius={size * 0.48} paddingAngle={1.5} stroke="var(--surface)" strokeWidth={2} isAnimationActive={!reduce} animationDuration={1000} startAngle={90} endAngle={-270} cornerRadius={4}>
+            <Pie data={data} dataKey="value" innerRadius={size * 0.36} outerRadius={size * 0.48} paddingAngle={1.5} stroke="var(--surface)" strokeWidth={2} isAnimationActive={false} startAngle={90} endAngle={-270} cornerRadius={4}>
               {data.map((d) => (
                 <Cell key={d.name} fill={d.color} />
               ))}
@@ -376,12 +368,11 @@ export function SimpleLine({
   bars?: boolean;
 }) {
   const gid = useId().replace(/:/g, "");
-  const reduce = useReducedMotion();
   if (data.length < 2) return <Empty title="Not enough data points yet" />;
   const tip = ({ active, payload, label: l }: any) =>
     active && payload?.length ? <TipBox title={fmtClock(Number(l), true)} rows={[{ color, label, value: format(Number(payload[0].value)) }]} /> : null;
   return (
-    <div style={{ height }}>
+    <div style={{ height }} className={bars ? "reveal-y" : "reveal-x"}>
       <ResponsiveContainer width="100%" height="100%">
         {bars ? (
           <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap={2}>
@@ -389,7 +380,7 @@ export function SimpleLine({
             <XAxis dataKey={x} tickFormatter={(v) => fmtClock(v)} tick={axisTick} minTickGap={36} />
             <YAxis tick={axisTick} width={52} tickFormatter={(v) => format(v)} />
             <Tooltip cursor={{ fill: "var(--raised)" }} content={tip} />
-            <Bar dataKey={y} fill={color} radius={[5, 5, 0, 0]} isAnimationActive={!reduce} animationDuration={900} maxBarSize={18} />
+            <Bar dataKey={y} fill={color} radius={[5, 5, 0, 0]} isAnimationActive={false} maxBarSize={18} />
           </BarChart>
         ) : (
           <AreaChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
@@ -403,7 +394,7 @@ export function SimpleLine({
             <XAxis dataKey={x} type="number" scale="time" domain={["dataMin", "dataMax"]} tickFormatter={(v) => fmtClock(v)} tick={axisTick} minTickGap={36} />
             <YAxis tick={axisTick} width={52} tickFormatter={(v) => format(v)} />
             <Tooltip cursor={{ stroke: "var(--accent)", strokeDasharray: "4 4" }} content={tip} />
-            <Area type="monotoneX" dataKey={y} stroke={color} strokeWidth={2.25} fill={`url(#${gid})`} dot={false} isAnimationActive={!reduce} animationDuration={1000} activeDot={{ r: 5, stroke: "var(--surface)", strokeWidth: 3 }} />
+            <Area type="monotoneX" dataKey={y} stroke={color} strokeWidth={2.25} fill={`url(#${gid})`} dot={false} isAnimationActive={false} activeDot={{ r: 5, stroke: "var(--surface)", strokeWidth: 3 }} />
           </AreaChart>
         )}
       </ResponsiveContainer>

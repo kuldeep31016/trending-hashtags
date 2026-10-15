@@ -29,6 +29,7 @@ LOGS="$ROOT/logs"
 RUN="$ROOT/data/run"
 mkdir -p "$LOGS" "$RUN"
 HDFS_ARGS=(--backend hdfs --exec-prefix "docker exec -i namenode")
+DRIVER_ARGS=(--job-timeout 240)  # a frozen task under emulation is killed and retried after 4 min
 
 say() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m %s\n' "$*"; }
@@ -94,7 +95,7 @@ start_services() {
   local pace=(--duration "$DURATION"); [ -n "${RATE:-}" ] && pace=(--rate "$RATE")
   start_svc dashboard env PORT="$PORT" "$PY" dashboard/app.py
   start_svc sink "$PY" -u consumer/hdfs_sink.py "${HDFS_ARGS[@]}"
-  start_svc driver "$PY" -u driver/sliding_window.py "${HDFS_ARGS[@]}"
+  start_svc driver "$PY" -u driver/sliding_window.py "${HDFS_ARGS[@]}" "${DRIVER_ARGS[@]}"
   start_svc producer "$PY" -u producer/producer.py "${pace[@]}" --loop
   say "dashboard: http://localhost:$PORT   (HDFS http://localhost:9870, YARN http://localhost:8088)"
   say "the first window appears after the first MapReduce job (about 1-2 minutes)"
@@ -141,7 +142,7 @@ case "${1:-help}" in
     case "$svc" in
       dashboard) stop_svc dashboard; start_svc dashboard env PORT="$PORT" "$PY" dashboard/app.py ;;
       sink) stop_svc sink; start_svc sink "$PY" -u consumer/hdfs_sink.py "${HDFS_ARGS[@]}" ;;
-      driver) stop_svc driver 240; start_svc driver "$PY" -u driver/sliding_window.py "${HDFS_ARGS[@]}" ;;
+      driver) stop_svc driver 240; start_svc driver "$PY" -u driver/sliding_window.py "${HDFS_ARGS[@]}" "${DRIVER_ARGS[@]}" ;;
       producer) "$0" replay ;;
       *) warn "usage: $0 restart dashboard|sink|driver|producer"; exit 1 ;;
     esac ;;
