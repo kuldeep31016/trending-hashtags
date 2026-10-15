@@ -82,6 +82,26 @@ def run_hadoop(storage, keys, streaming_jar, mr_dir, run_id, reducers=1, timeout
     return parse_output(raw)
 
 
+def heal_nodemanager(storage, container="nodemanager"):
+    """Restart the NodeManager container when YARN has no RUNNING node (e.g. marked LOST).
+
+    Under amd64 emulation the NodeManager JVM sometimes freezes; jobs then wait in ACCEPTED
+    forever. Only applies when Hadoop runs in Docker (exec prefix "docker exec ..."). Returns
+    True if a restart was done.
+    """
+    if not storage.prefix or storage.prefix[0] != "docker":
+        return False
+    try:
+        nodes = storage.run(["yarn", "node", "-list", "-all"], check=False, timeout=60).stdout.decode("utf-8", "replace")
+    except subprocess.TimeoutExpired:
+        nodes = ""
+    if re.search(r"\sRUNNING\s", nodes):
+        return False
+    kill_running_jobs(storage)
+    subprocess.run(["docker", "restart", container], capture_output=True, timeout=180, check=False)
+    return True
+
+
 def kill_running_jobs(storage):
     """Kill this project's YARN apps that are still running (e.g. left by a killed driver).
 

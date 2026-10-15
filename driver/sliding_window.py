@@ -36,7 +36,7 @@ from analytics import events as trend_events  # noqa: E402
 from analytics.scoring import DEFAULT_K, DEFAULT_MIN_COUNT, rank_by_velocity, score_tags  # noqa: E402
 from analytics.store import DEFAULT_DB, Store  # noqa: E402
 from common import ROOT, add_storage_args, get_logger, kv, make_storage, window_keys  # noqa: E402
-from mapreduce.runner import JobFailed, NoInput, kill_running_jobs, run_hadoop, run_local  # noqa: E402
+from mapreduce.runner import JobFailed, NoInput, heal_nodemanager, kill_running_jobs, run_hadoop, run_local  # noqa: E402
 
 TOTAL = "__TOTAL__"
 DEFAULT_OUT = os.path.join(ROOT, "dashboard", "leaderboard.json")
@@ -205,6 +205,8 @@ class Driver:
                 err = f"{type(e).__name__}: {e}"
                 log.error("window failed", extra=kv(attempt=attempt, of=self.a.retries, error=err,
                                                     window_end=int(end_ts)))
+                if "timed out" in err and self.storage.kind == "hdfs" and heal_nodemanager(self.storage):
+                    log.warning("YARN had no live NodeManager; restarted the nodemanager container")
                 if attempt < self.a.retries:
                     wait = min(self.a.retry_backoff * 2 ** (attempt - 1), 120)
                     self.state["status"] = "retrying"
